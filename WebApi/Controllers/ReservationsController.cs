@@ -28,60 +28,154 @@ namespace WebApi.Controllers
         [HttpGet]
         public ActionResult Get()
         {
+        //    var reservations = _context.Reservations
+        //        .Select(r => _mapper.Map<ReservationReadDto>(r))
+        //        .ToList();
+        //    var menuItems = _context.MenuItems
+        //       .Select(p => _mapper.Map<MenuItemReadDto>(p))
+        //       .ToList();
+        //    var reservationMenuItems = _context.ReservationMenuItems.ToList();
+
+
+            //foreach (var reservation in reservations)
+            //{
+            //    List<MenuItemReadDto> menuItemsToAdd = new List<MenuItemReadDto>();
+            //    foreach (var rm in reservationMenuItems)
+            //    {
+            //        if (rm.ReservationId == reservation.Id)
+            //        {
+            //            MenuItemReadDto mItem = menuItems
+            //                    .FirstOrDefault(m => m.Id == rm.MenuItemId);
+            //            if (mItem != null)
+            //            {
+            //                menuItemsToAdd.Add(mItem);
+            //            }
+            //        }
+            //    }
+
+            //    reservation.MenuItems = menuItemsToAdd;
+
+            //}
             var reservations = _context.Reservations
-                .Select(o => _mapper.Map<ReservationReadDto>(o))
-                .ToList();
-            var menuItems = _context.MenuItems
-                .Select(p => _mapper.Map<MenuItemReadDto>(p))
-                .ToList();
-            var reservationMenuItems = _context.reservationMenuItems.ToList();
-
-
-            foreach (var reservation in reservations)
-            {
-                List<MenuItemReadDto> menuItemsToAdd = new List<MenuItemReadDto>();
-                foreach (var rm in reservationMenuItems)
+                .Select(r => new ReservationReadDto
                 {
-                    if (rm.ReservationId == reservation.Id)
+                    Id = r.Id,
+                    Name = r.Name,
+                    Date = r.Date,
+                    MenuItems = _context.ReservationMenuItems
+                    .Where(rm => rm.ReservationId == r.Id)
+                    .Select(m => new MenuItemReadDto
                     {
-                        MenuItemReadDto mItem = menuItems
-                                .FirstOrDefault(m => m.Id == rm.MenuItemId);
-                        if (mItem != null)
-                        {
-                            menuItemsToAdd.Add(mItem);
-                        }
-                    }
-                }
+                        Id = m.MenuItem.Id,
+                        Name = m.MenuItem.Name,
+                        Price = m.MenuItem.Price
 
-                reservation.MenuItems = menuItemsToAdd;
+                    })
+                    .ToList()
 
-            }
+                });
             return Ok(reservations);
         }
 
         // GET api/<ReservationsController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ActionResult Get(int id)
         {
-            return "value";
+            var resrvation =_context.Reservations
+                .Where(r => r.Id == id)
+                 .Select(r => new ReservationReadDto
+                 {
+                     Id = r.Id,
+                     Name = r.Name,
+                     Date = r.Date,
+                     MenuItems = _context.ReservationMenuItems
+                    .Where(rm => rm.ReservationId == r.Id)
+                    .Select(m => new MenuItemReadDto
+                    {
+                        Id = m.MenuItem.Id,
+                        Name = m.MenuItem.Name,
+                        Price = m.MenuItem.Price
+
+                    })
+                    .ToList()
+
+                 })
+                 .FirstOrDefault();
+            if (resrvation == null)
+                return NotFound($"Reservation with id={id} doesn't exist.");
+            return Ok(resrvation);
         }
 
         // POST api/<ReservationsController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public ActionResult Post([FromBody] ReservationCreateDto value)
         {
+            var newReservation = _mapper.Map<Reservation>(value);
+            _context.Reservations.Add(newReservation);
+            _context.SaveChanges();
+
+            foreach(var id in value.MenuItemIds)
+            {
+                ReservationMenuItems rm = new ReservationMenuItems
+                {
+                    ReservationId = newReservation.Id,
+                    MenuItemId = id
+                };
+                _context.ReservationMenuItems.Add(rm);
+            }
+            _context.SaveChanges();
+
+            return Ok();
         }
 
         // PUT api/<ReservationsController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public ActionResult Put(int id, [FromBody] ReservationCreateDto value)
         {
+            var reservationFromDb = _context.Reservations
+                .FirstOrDefault(r => r.Id == id);
+
+            if (reservationFromDb == null)
+                return NotFound();
+
+            _mapper.Map(value, reservationFromDb);
+
+            var menuItemsToRemove = _context.ReservationMenuItems
+                .Where(rm => rm.ReservationId == id);
+
+            _context.ReservationMenuItems.RemoveRange(menuItemsToRemove);
+
+            var menuItemsToAdd = value.MenuItemIds
+                .Select(mId => new ReservationMenuItems
+                {
+                    ReservationId = id,
+                    MenuItemId = mId
+                });
+            _context.ReservationMenuItems.AddRange(menuItemsToAdd);
+
+            _context.SaveChanges();
+            return NoContent();
         }
 
         // DELETE api/<ReservationsController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public ActionResult Delete(int id)
         {
+            var reservationFromDb = _context.Reservations
+               .FirstOrDefault(r => r.Id == id);
+
+            if (reservationFromDb == null)
+                return NotFound();
+            var menuItemsToRemove = _context.ReservationMenuItems
+               .Where(rm => rm.ReservationId == id);
+
+            _context.ReservationMenuItems.RemoveRange(menuItemsToRemove);
+            _context.Reservations.Remove(reservationFromDb);
+
+            _context.SaveChanges();
+
+            return NoContent();
+
         }
     }
 }

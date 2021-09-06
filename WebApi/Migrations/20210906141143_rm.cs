@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace WebApi.Migrations
 {
-    public partial class Initial : Migration
+    public partial class rm : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -44,7 +44,7 @@ namespace WebApi.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ResrvationMenuItems",
+                name: "ReservationMenuItems",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -54,15 +54,15 @@ namespace WebApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ResrvationMenuItems", x => x.Id);
+                    table.PrimaryKey("PK_ReservationMenuItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ResrvationMenuItems_MenuItems_MenuItemId",
+                        name: "FK_ReservationMenuItems_MenuItems_MenuItemId",
                         column: x => x.MenuItemId,
                         principalTable: "MenuItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ResrvationMenuItems_Reservations_ReservationId",
+                        name: "FK_ReservationMenuItems_Reservations_ReservationId",
                         column: x => x.ReservationId,
                         principalTable: "Reservations",
                         principalColumn: "Id",
@@ -71,20 +71,20 @@ namespace WebApi.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ResrvationMenuItems_MenuItemId",
-                table: "ResrvationMenuItems",
+                name: "IX_ReservationMenuItems_MenuItemId",
+                table: "ReservationMenuItems",
                 column: "MenuItemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ResrvationMenuItems_ReservationId",
-                table: "ResrvationMenuItems",
+                name: "IX_ReservationMenuItems_ReservationId",
+                table: "ReservationMenuItems",
                 column: "ReservationId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ResrvationMenuItems");
+                name: "ReservationMenuItems");
 
             migrationBuilder.DropTable(
                 name: "MenuItems");

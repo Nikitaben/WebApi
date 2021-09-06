@@ -9,8 +9,8 @@ using WebApi.Data;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20210825164444_Initial")]
-    partial class Initial
+    [Migration("20210906141143_rm")]
+    partial class rm
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -71,7 +71,7 @@ namespace WebApi.Migrations
 
                     b.HasIndex("ReservationId");
 
-                    b.ToTable("ResrvationMenuItems");
+                    b.ToTable("ReservationMenuItems");
                 });
 
             modelBuilder.Entity("WebApi.Models.ReservationMenuItems", b =>
